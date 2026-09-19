@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetPM — Multi-Company Fleet & Project Vehicle Management</title>
+  <meta name="description" content="Multi-tenant fleet management and vehicle project allocation platform.">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+  <!-- Top Demo Switcher Banner -->
+  <div class="demo-banner">
+    <div class="demo-badge">
+      <span class="indicator"></span>
+      <span><strong>Multi-Tenant FleetPM</strong> • Live Isolation Demonstration</span>
+    </div>
+    <div class="demo-users">
+      <span style="color: var(--text-dim); margin-right: 4px;">Switch Persona:</span>
+      <button class="demo-btn active" data-email="alex@apex.com" data-password="password123">
+        🏢 Alex (Apex Admin)
+      </button>
+      <button class="demo-btn" data-email="dave@apex.com" data-password="password123">
+        🚚 Dave (Apex Driver)
+      </button>
+      <button class="demo-btn" data-email="elena@summit.com" data-password="password123">
+        📦 Elena (Summit Admin)
+      </button>
+      <button class="demo-btn" data-email="admin@fleetpm.com" data-password="admin123">
+        ⚡ Super Admin
+      </button>
+    </div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-logo">F</div>
+      <div>
+        <div class="brand-title">FleetPM</div>
+        <div class="brand-subtitle">Project Fleet Operations</div>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="dashboard">
+        📊 Dashboard
+      </button>
+      <button class="nav-tab" data-tab="vehicles">
+        🚗 Fleet Vehicles
+      </button>
+      <button class="nav-tab" data-tab="projects">
+        🏗️ Projects
+      </button>
+      <button class="nav-tab" data-tab="logs">
+        📋 Trip Logs
+      </button>
+      <button class="nav-tab" data-tab="categories">
+        🏷️ Categories
+      </button>
+    </nav>
+
+    <div class="user-profile">
+      <div class="user-meta">
+        <div class="user-name" id="userName">Alex Morgan</div>
+        <div class="user-company-badge" id="userCompanyBadge">Apex Infrastructure Ltd</div>
+      </div>
+      <button class="btn-logout" id="btnLogout" title="Log out">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- VIEW 1: DASHBOARD -->
+    <section class="view-section active" id="view-dashboard">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Fleet Overview & Key Metrics</h1>
+          <p class="section-desc">Live operational status, active deployments, and vehicle utilization.</p>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card total">
+          <div class="kpi-header">
+            <span class="kpi-label">Total Fleet</span>
+            <div class="kpi-icon">🚗</div>
+          </div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+          <div class="kpi-sub">Vehicles registered</div>
+        </div>
+
+        <div class="kpi-card available">
+          <div class="kpi-header">
+            <span class="kpi-label">Available</span>
+            <div class="kpi-icon">✓</div>
+          </div>
+          <div class="kpi-value" id="kpiAvailable" style="color: #34d399;">0</div>
+          <div class="kpi-sub">Ready for checkout</div>
+        </div>
+
+        <div class="kpi-card in-use">
+          <div class="kpi-header">
+            <span class="kpi-label">On Trip</span>
+            <div class="kpi-icon">⚡</div>
+          </div>
+          <div class="kpi-value" id="kpiInUse" style="color: #fbbf24;">0</div>
+          <div class="kpi-sub">Assigned to projects</div>
+        </div>
+
+        <div class="kpi-card maintenance">
+          <div class="kpi-header">
+            <span class="kpi-label">Maintenance</span>
+            <div class="kpi-icon">🔧</div>
+          </div>
+          <div class="kpi-value" id="kpiMaintenance" style="color: #f87171;">0</div>
+          <div class="kpi-sub">Under servicing</div>
+        </div>
+
+        <div class="kpi-card projects">
+          <div class="kpi-header">
+            <span class="kpi-label">Active Projects</span>
+            <div class="kpi-icon">🏗️</div>
+          </div>
+          <div class="kpi-value" id="kpiProjects" style="color: #38bdf8;">0</div>
+          <div class="kpi-sub">Site operations</div>
+        </div>
+      </div>
+
+      <!-- Live Active Trips -->
+      <div class="section-header" style="margin-top: 16px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700;">Active Vehicle Trips</h2>
+          <p class="section-desc">Vehicles currently checked out on site jobs.</p>
+        </div>
+      </div>
+      <div id="dashboardActiveTrips" style="margin-bottom: 36px;"></div>
+
+      <!-- Recent Logs Table -->
+      <div class="section-header">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700;">Recent Fleet Activity</h2>
+          <p class="section-desc">Audit trail of recent vehicle dispatches and returns.</p>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Vehicle Plate</th>
+              <th>Driver</th>
+              <th>Project</th>
+              <th>Status</th>
+              <th>Start Odo</th>
+              <th>End Odo</th>
+              <th>Distance</th>
+            </tr>
+          </thead>
+          <tbody id="recentLogsTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 2: VEHICLES -->
+    <section class="view-section" id="view-vehicles">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Fleet Vehicles</h1>
+          <p class="section-desc">Browse, check out, and manage your company's dedicated vehicle inventory.</p>
+        </div>
+        <button class="btn btn-primary" id="btnAddVehicle">
+          + Add New Vehicle
+        </button>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="filter-bar">
+        <div class="filter-group" id="categoryChips">
+          <!-- Dynamic Category Chips -->
+        </div>
+        <div class="filter-group">
+          <button class="filter-chip status-filter-btn active" data-status="">All Statuses</button>
+          <button class="filter-chip status-filter-btn" data-status="available">Available</button>
+          <button class="filter-chip status-filter-btn" data-status="in_use">In Use</button>
+          <button class="filter-chip status-filter-btn" data-status="maintenance">Maintenance</button>
+          <input type="text" class="search-input" id="vehicleSearch" placeholder="Search plate, model, VIN...">
+        </div>
+      </div>
+
+      <!-- Vehicle Cards Grid -->
+      <div class="vehicle-grid" id="vehiclesGrid">
+        <!-- Dynamic Cards -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: PROJECTS -->
+    <section class="view-section" id="view-projects">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Company Projects</h1>
+          <p class="section-desc">Construction sites, logistic routes, and client contracts requiring fleet allocations.</p>
+        </div>
+        <button class="btn btn-primary" id="btnAddProject">
+          + Add New Project
+        </button>
+      </div>
+
+      <div class="projects-grid" id="projectsGrid">
+        <!-- Dynamic Project Cards -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: TRIP LOGS -->
+    <section class="view-section" id="view-logs">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Trip Usage Logs & Audit Trail</h1>
+          <p class="section-desc">Complete record of every vehicle trip, driver checkouts, return timestamps, and distances.</p>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Plate</th>
+              <th>Driver</th>
+              <th>Project</th>
+              <th>Departed</th>
+              <th>Returned</th>
+              <th>Start Odo</th>
+              <th>End Odo</th>
+              <th>Distance</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 5: CATEGORIES -->
+    <section class="view-section" id="view-categories">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Vehicle Classifications</h1>
+          <p class="section-desc">Configured fleet equipment categories and current inventory counts.</p>
+        </div>
+      </div>
+
+      <div class="vehicle-grid" id="categoriesGrid">
+        <!-- Dynamic category cards -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Check Out Vehicle -->
+  <div class="modal-backdrop" id="checkoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="checkoutVehicleTitle">Check Out Vehicle</h3>
+        <button class="modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="checkoutForm">
+        <input type="hidden" id="checkoutVehicleId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Target Project *</label>
+            <select class="form-control" id="checkoutProjectSelect" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Driver *</label>
+            <select class="form-control" id="checkoutDriverSelect" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Starting Odometer (km) *</label>
+            <input type="number" step="0.1" class="form-control" id="checkoutStartOdo" required>
+            <small style="color: var(--text-dim); margin-top: 4px; display:block;">
+              Minimum allowed: <span id="checkoutMinOdo">0 km</span>
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Trip Purpose</label>
+            <input type="text" class="form-control" id="checkoutPurpose" placeholder="e.g. Concrete surveying, steel transport">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Check Out</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Check In Vehicle -->
+  <div class="modal-backdrop" id="checkinModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="checkinPlateTitle">Check In Vehicle</h3>
+        <button class="modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="checkinForm">
+        <input type="hidden" id="checkinLogId">
+        <div class="modal-body">
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 13px;">
+            <div style="color: var(--text-muted);">Trip Starting Odometer:</div>
+            <div style="font-size: 18px; font-weight: 700; color: #fff; margin-top: 2px;" id="checkinStartOdo">0 km</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Return Odometer (km) *</label>
+            <input type="number" step="0.1" class="form-control" id="checkinEndOdo" required>
+            <small style="color: var(--text-dim); margin-top: 4px; display:block;">
+              Must be greater than or equal to start odometer.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Condition & Return Notes</label>
+            <textarea class="form-control" id="checkinNotes" placeholder="e.g. Refueled at Shell, tire pressure OK, cleaned interior"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-success">Complete Check In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Vehicle -->
+  <div class="modal-backdrop" id="addVehicleModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Vehicle to Fleet</h3>
+        <button class="modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="addVehicleForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select class="form-control" id="newVehicleCategory" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">License Plate *</label>
+            <input type="text" class="form-control" id="newVehiclePlate" placeholder="e.g. APX-990" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Make & Model *</label>
+            <input type="text" class="form-control" id="newVehicleModel" placeholder="e.g. Isuzu D-Max 3.0L" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current Odometer (km)</label>
+            <input type="number" step="0.1" class="form-control" id="newVehicleOdo" value="0.0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fuel Type</label>
+            <select class="form-control" id="newVehicleFuel">
+              <option value="diesel">Diesel</option>
+              <option value="petrol">Petrol</option>
+              <option value="electric">Electric</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Vehicle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Project -->
+  <div class="modal-backdrop" id="addProjectModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Register New Project</h3>
+        <button class="modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="addProjectForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Project Code *</label>
+            <input type="text" class="form-control" id="newProjectCode" placeholder="e.g. PRJ-2026" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Project Name *</label>
+            <input type="text" class="form-control" id="newProjectName" placeholder="e.g. Central Subway Tunnel Works" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client Name</label>
+            <input type="text" class="form-control" id="newProjectClient" placeholder="e.g. Municipal Transport Authority">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Site Location</label>
+            <input type="text" class="form-control" id="newProjectLocation" placeholder="e.g. Station 5 Bore Hole">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" id="newProjectDesc" placeholder="Scope of construction and required vehicle support"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
