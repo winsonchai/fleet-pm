@@ -15,8 +15,10 @@ from backend.routers import (
     dashboard,
 )
 
-# Initialize database tables
+# Initialize database tables and seed demo data if empty
 Base.metadata.create_all(bind=engine)
+from backend.seed import seed
+seed()
 
 app = FastAPI(
     title="FleetPM - Multi-Company Fleet Management System",
