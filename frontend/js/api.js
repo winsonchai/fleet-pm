@@ -145,6 +145,19 @@ const API = (() => {
       });
     },
 
+    async updateProject(id, payload) {
+      return request(`/api/projects/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+    },
+
+    async deleteProject(id) {
+      return request(`/api/projects/${id}`, {
+        method: 'DELETE',
+      });
+    },
+
     // Categories
     async getCategories() {
       return request('/api/categories');

@@ -621,6 +621,10 @@ body {
   flex: 1;
   justify-content: center;
 }
+.vehicle-card-actions .btn-edit-vehicle {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+}
 
 /* Project Cards Grid */
 .projects-grid {
@@ -756,10 +760,22 @@ body {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 520px;
+  max-height: 90vh;
   box-shadow: var(--shadow-lg);
   transform: scale(0.95) translateY(10px);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
+  overflow-y: auto;
+}
+.modal.modal-lg {
+  max-width: 600px;
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 18px;
 }
 .modal-backdrop.active .modal {
   transform: scale(1) translateY(0);

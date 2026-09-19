@@ -258,7 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      grid.innerHTML = vehicles.map(v => `
+      grid.innerHTML = vehicles.map(v => {
+        const vehJson = JSON.stringify(v).replace(/'/g, '&apos;');
+        return `
         <div class="vehicle-card">
           <div>
             <div class="vehicle-card-top">
@@ -305,24 +307,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 Check In
               </button>
             ` : `
-              <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.5;">
+              <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.6; cursor: not-allowed;">
                 In Maintenance
               </button>
             `}
+            <button class="btn btn-secondary btn-sm btn-edit-vehicle" data-veh='${vehJson}' title="Edit Vehicle">
+              ✏️ Edit
+            </button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       // Wire Action Buttons
-      document.querySelectorAll('.btn-checkout').forEach(b => {
+      grid.querySelectorAll('.btn-checkout').forEach(b => {
         b.addEventListener('click', () => {
           openCheckOutModal(parseInt(b.dataset.id), b.dataset.plate, parseFloat(b.dataset.odo));
         });
       });
 
-      document.querySelectorAll('.btn-checkin').forEach(b => {
+      grid.querySelectorAll('.btn-checkin').forEach(b => {
         b.addEventListener('click', () => {
           openCheckInModal(parseInt(b.dataset.logId), parseFloat(b.dataset.startOdo), b.dataset.plate);
+        });
+      });
+
+      grid.querySelectorAll('.btn-edit-vehicle').forEach(b => {
+        b.addEventListener('click', () => {
+          const veh = JSON.parse(b.dataset.veh);
+          openEditVehicleModal(veh);
         });
       });
     } catch (err) {
@@ -347,7 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      grid.innerHTML = projects.map(p => `
+      grid.innerHTML = projects.map(p => {
+        const prjJson = JSON.stringify(p).replace(/'/g, '&apos;');
+        return `
         <div class="project-card">
           <div>
             <div class="project-header">
@@ -360,14 +375,27 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="project-client">🏛️ Client: <strong>${p.client_name || 'Direct'}</strong></div>
             <p class="project-desc">${p.description || 'No detailed scope description provided.'}</p>
           </div>
-          <div class="project-meta">
-            <span>📍 ${p.site_location || 'Main Depot'}</span>
-            <span class="project-active-vehicles">
-              🚗 ${p.active_vehicles_count || 0} active vehicle(s)
-            </span>
+          <div class="project-card-footer" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div class="project-meta" style="display: flex; gap: 12px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap;">
+              <span>📍 ${p.site_location || 'Main Depot'}</span>
+              <span class="project-active-vehicles">
+                🚗 ${p.active_vehicles_count || 0} active
+              </span>
+            </div>
+            <button class="btn btn-secondary btn-sm btn-edit-project" data-prj='${prjJson}' title="Edit Project">
+              ✏️ Edit
+            </button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
+
+      grid.querySelectorAll('.btn-edit-project').forEach(b => {
+        b.addEventListener('click', () => {
+          const prj = JSON.parse(b.dataset.prj);
+          openEditProjectModal(prj);
+        });
+      });
     } catch (err) {
       showToast(`Error loading projects: ${err.message}`, 'error');
     }
@@ -711,6 +739,159 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal('editCategoryModal');
         showToast(`Category "${name}" updated successfully!`, 'success');
         loadCategories();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
+
+  // Vehicle Edit Modal Handlers
+  function openEditVehicleModal(veh) {
+    document.getElementById('editVehicleId').value = veh.id;
+    document.getElementById('editVehiclePlate').value = veh.plate_number;
+    document.getElementById('editVehicleModel').value = veh.model_name;
+    document.getElementById('editVehicleStatus').value = veh.status;
+    document.getElementById('editVehicleOdo').value = veh.current_odometer;
+    document.getElementById('editVehicleFuel').value = veh.fuel_type || 'diesel';
+    document.getElementById('editVehicleYear').value = veh.year || '';
+    document.getElementById('editVehicleColor').value = veh.color || '';
+    document.getElementById('editVehicleVin').value = veh.vin_number || '';
+    document.getElementById('editVehicleNotes').value = veh.notes || '';
+    document.getElementById('editVehicleTitle').textContent = `Edit Vehicle: ${veh.plate_number}`;
+
+    const catSelect = document.getElementById('editVehicleCategory');
+    catSelect.innerHTML = cachedCategories.map(c => `
+      <option value="${c.id}" ${c.id === veh.category_id ? 'selected' : ''}>${c.name}</option>
+    `).join('');
+
+    openModal('editVehicleModal');
+  }
+
+  const editVehForm = document.getElementById('editVehicleForm');
+  if (editVehForm) {
+    editVehForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('editVehicleId').value);
+      const category_id = parseInt(document.getElementById('editVehicleCategory').value);
+      const plate_number = document.getElementById('editVehiclePlate').value.trim().toUpperCase();
+      const model_name = document.getElementById('editVehicleModel').value.trim();
+      const status = document.getElementById('editVehicleStatus').value;
+      const current_odometer = parseFloat(document.getElementById('editVehicleOdo').value || 0);
+      const fuel_type = document.getElementById('editVehicleFuel').value;
+      const yearVal = document.getElementById('editVehicleYear').value;
+      const year = yearVal ? parseInt(yearVal) : null;
+      const color = document.getElementById('editVehicleColor').value.trim() || null;
+      const vin_number = document.getElementById('editVehicleVin').value.trim() || null;
+      const notes = document.getElementById('editVehicleNotes').value.trim() || null;
+
+      try {
+        await API.updateVehicle(id, {
+          category_id,
+          plate_number,
+          model_name,
+          status,
+          current_odometer,
+          fuel_type,
+          year,
+          color,
+          vin_number,
+          notes,
+        });
+        closeModal('editVehicleModal');
+        showToast(`Vehicle ${plate_number} updated successfully!`, 'success');
+        loadVehicles();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
+
+  const btnDeleteVeh = document.getElementById('btnDeleteVehicle');
+  if (btnDeleteVeh) {
+    btnDeleteVeh.addEventListener('click', async () => {
+      const id = parseInt(document.getElementById('editVehicleId').value);
+      const plate = document.getElementById('editVehiclePlate').value;
+
+      if (!confirm(`Are you sure you want to delete vehicle "${plate}" from your fleet?`)) {
+        return;
+      }
+
+      try {
+        await API.deleteVehicle(id);
+        closeModal('editVehicleModal');
+        showToast(`Vehicle ${plate} removed from fleet.`, 'success');
+        loadVehicles();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
+
+  // Project Edit Modal Handlers
+  function openEditProjectModal(prj) {
+    document.getElementById('editProjectId').value = prj.id;
+    document.getElementById('editProjectCode').value = prj.project_code;
+    document.getElementById('editProjectName').value = prj.project_name;
+    document.getElementById('editProjectStatus').value = prj.status;
+    document.getElementById('editProjectClient').value = prj.client_name || '';
+    document.getElementById('editProjectLocation').value = prj.site_location || '';
+    document.getElementById('editProjectStartDate').value = prj.start_date || '';
+    document.getElementById('editProjectEndDate').value = prj.end_date || '';
+    document.getElementById('editProjectDesc').value = prj.description || '';
+    document.getElementById('editProjectTitle').textContent = `Edit Project: ${prj.project_code}`;
+
+    openModal('editProjectModal');
+  }
+
+  const editPrjForm = document.getElementById('editProjectForm');
+  if (editPrjForm) {
+    editPrjForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('editProjectId').value);
+      const project_code = document.getElementById('editProjectCode').value.trim();
+      const project_name = document.getElementById('editProjectName').value.trim();
+      const status = document.getElementById('editProjectStatus').value;
+      const client_name = document.getElementById('editProjectClient').value.trim() || null;
+      const site_location = document.getElementById('editProjectLocation').value.trim() || null;
+      const start_date = document.getElementById('editProjectStartDate').value || null;
+      const end_date = document.getElementById('editProjectEndDate').value || null;
+      const description = document.getElementById('editProjectDesc').value.trim() || null;
+
+      try {
+        await API.updateProject(id, {
+          project_code,
+          project_name,
+          status,
+          client_name,
+          site_location,
+          start_date,
+          end_date,
+          description,
+        });
+        closeModal('editProjectModal');
+        showToast(`Project "${project_code}" updated successfully!`, 'success');
+        loadProjects();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
+
+  const btnDeletePrj = document.getElementById('btnDeleteProject');
+  if (btnDeletePrj) {
+    btnDeletePrj.addEventListener('click', async () => {
+      const id = parseInt(document.getElementById('editProjectId').value);
+      const code = document.getElementById('editProjectCode').value;
+
+      if (!confirm(`Are you sure you want to delete project "${code}"?`)) {
+        return;
+      }
+
+      try {
+        await API.deleteProject(id);
+        closeModal('editProjectModal');
+        showToast(`Project "${code}" deleted.`, 'success');
+        loadProjects();
       } catch (err) {
         showToast(err.message, 'error');
       }
