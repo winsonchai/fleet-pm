@@ -901,7 +901,10 @@ textarea.form-control {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive adjustments */
+/* =============================================================
+   RESPONSIVE MOBILE STYLES & CARD TRANSFORMATION
+   ============================================================= */
+
 @media (max-width: 900px) {
   .header {
     flex-direction: column;
@@ -913,10 +916,205 @@ textarea.form-control {
     width: 100%;
     overflow-x: auto;
     justify-content: flex-start;
+    padding: 6px;
+    -webkit-overflow-scrolling: touch;
   }
+  .nav-tab {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Main Container & Section Spacing */
+  .main-content {
+    padding: 16px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .section-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Persona Switcher Banner */
   .demo-banner {
     flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  .demo-users {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+  .demo-btn {
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* Filter Bars on Mobile */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .filter-group {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-chip {
+    flex-shrink: 0;
+  }
+  .search-input {
+    width: 100%;
+  }
+  #activityCustomDateRange,
+  #logsCustomDateRange {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
     gap: 8px;
-    align-items: flex-start;
+  }
+  .date-input {
+    width: 100%;
+  }
+
+  /* ==========================================================
+     MOBILE RESPONSIVE CARD TRANSFORMATION FOR DATA TABLES
+     ========================================================== */
+  .table-container {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    overflow: visible;
+  }
+
+  /* Hide table column headers on mobile */
+  .data-table thead {
+    display: none;
+  }
+
+  /* Flex column container */
+  .data-table,
+  .data-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+  }
+
+  /* Each table row becomes a stacked card */
+  .data-table tr {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    gap: 4px;
+    transition: var(--transition);
+  }
+
+  .data-table tr:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Empty state row spans normally */
+  .data-table tr td[colspan] {
+    display: block;
+    text-align: center;
+    padding: 32px 16px;
+    border: none;
+  }
+  .data-table tr td[colspan]::before {
+    display: none;
+  }
+
+  /* Each table cell becomes a key-value row inside the card */
+  .data-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .data-table td:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  /* Label displayed on left */
+  .data-table td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    text-align: left;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Card top row emphasis for license plate */
+  .data-table td[data-label="Vehicle Plate"],
+  .data-table td[data-label="Plate"] {
+    padding-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 4px;
+  }
+
+  /* Form row stacks on mobile modals */
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .modal-footer .btn,
+  .modal-footer div {
+    width: 100%;
+  }
+
+  .modal-footer div {
+    display: flex;
+    gap: 8px;
+  }
+
+  .modal-footer div .btn {
+    flex: 1;
   }
 }

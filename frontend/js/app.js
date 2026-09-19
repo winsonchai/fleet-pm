@@ -145,17 +145,17 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         recentBody.innerHTML = logs.map(log => `
           <tr>
-            <td><span class="plate-tag" style="font-size: 13px;">${log.vehicle_plate}</span></td>
-            <td><strong>${log.driver_name}</strong></td>
-            <td>${log.project_name} <br><small style="color:var(--text-dim);">${log.project_code}</small></td>
-            <td>
+            <td data-label="Vehicle Plate"><span class="plate-tag" style="font-size: 13px;">${log.vehicle_plate}</span></td>
+            <td data-label="Driver"><strong>${log.driver_name}</strong></td>
+            <td data-label="Project">${log.project_name} <br><small style="color:var(--text-dim);">${log.project_code}</small></td>
+            <td data-label="Status">
               <span class="status-badge ${log.status}">
                 ${log.status === 'active' ? '● In Progress' : '✓ Completed'}
               </span>
             </td>
-            <td>${log.start_odometer.toLocaleString()} km</td>
-            <td>${log.end_odometer ? `${log.end_odometer.toLocaleString()} km` : '—'}</td>
-            <td><strong style="color: var(--accent-cyan);">${log.distance_traveled ? `+${log.distance_traveled} km` : '—'}</strong></td>
+            <td data-label="Start Odo">${log.start_odometer.toLocaleString()} km</td>
+            <td data-label="End Odo">${log.end_odometer ? `${log.end_odometer.toLocaleString()} km` : '—'}</td>
+            <td data-label="Distance"><strong style="color: var(--accent-cyan);">${log.distance_traveled ? `+${log.distance_traveled} km` : '—'}</strong></td>
           </tr>
         `).join('');
       }
@@ -436,14 +436,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tbody.innerHTML = logs.map(l => `
         <tr>
-          <td><span class="plate-tag" style="font-size: 13px;">${l.vehicle_plate}</span></td>
-          <td><strong>${l.driver_name}</strong></td>
-          <td>${l.project_name} <br><small style="color:var(--text-dim);">${l.project_code}</small></td>
-          <td>${new Date(l.checkout_time).toLocaleString([], {dateStyle:'short', timeStyle:'short'})}</td>
-          <td>${l.checkin_time ? new Date(l.checkin_time).toLocaleString([], {dateStyle:'short', timeStyle:'short'}) : '<span style="color:var(--warning);">Active</span>'}</td>
-          <td>${l.start_odometer.toLocaleString()} km</td>
-          <td>${l.end_odometer ? `${l.end_odometer.toLocaleString()} km` : '—'}</td>
-          <td><strong style="color: var(--accent-cyan);">${l.distance_traveled ? `+${l.distance_traveled} km` : '—'}</strong></td>
+          <td data-label="Plate"><span class="plate-tag" style="font-size: 13px;">${l.vehicle_plate}</span></td>
+          <td data-label="Driver"><strong>${l.driver_name}</strong></td>
+          <td data-label="Project">${l.project_name} <br><small style="color:var(--text-dim);">${l.project_code}</small></td>
+          <td data-label="Departed">${new Date(l.checkout_time).toLocaleString([], {dateStyle:'short', timeStyle:'short'})}</td>
+          <td data-label="Returned">${l.checkin_time ? new Date(l.checkin_time).toLocaleString([], {dateStyle:'short', timeStyle:'short'}) : '<span style="color:var(--warning);">Active</span>'}</td>
+          <td data-label="Start Odo">${l.start_odometer.toLocaleString()} km</td>
+          <td data-label="End Odo">${l.end_odometer ? `${l.end_odometer.toLocaleString()} km` : '—'}</td>
+          <td data-label="Distance"><strong style="color: var(--accent-cyan);">${l.distance_traveled ? `+${l.distance_traveled} km` : '—'}</strong></td>
         </tr>
       `).join('');
     } catch (err) {
