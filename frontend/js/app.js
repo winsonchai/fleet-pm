@@ -93,6 +93,39 @@ document.addEventListener('DOMContentLoaded', () => {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
 
+  // Filter vehicles by status and switch to Vehicles tab
+  function filterVehiclesByStatus(status) {
+    vehicleStatusFilter = status ? status : null;
+    vehicleCategoryFilter = null;
+    vehicleSearchTerm = '';
+    const searchInput = document.getElementById('vehicleSearch');
+    if (searchInput) searchInput.value = '';
+
+    // Update status filter buttons
+    document.querySelectorAll('.status-filter-btn').forEach(btn => {
+      if ((btn.dataset.status || '') === (status || '')) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    switchTab('vehicles');
+  }
+
+  // Dashboard KPI Card Navigation Handlers
+  document.querySelectorAll('.kpi-card[data-filter-status]').forEach(card => {
+    card.addEventListener('click', () => {
+      filterVehiclesByStatus(card.dataset.filterStatus);
+    });
+  });
+
+  document.querySelectorAll('.kpi-card[data-nav-tab]').forEach(card => {
+    card.addEventListener('click', () => {
+      switchTab(card.dataset.navTab);
+    });
+  });
+
   // Modal Helpers
   function openModal(modalId) {
     const modal = document.getElementById(modalId);

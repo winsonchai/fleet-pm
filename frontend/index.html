@@ -83,49 +83,49 @@
 
       <!-- KPI Summary Cards -->
       <div class="kpi-grid">
-        <div class="kpi-card total">
+        <div class="kpi-card total" data-filter-status="" title="Click to view all fleet vehicles">
           <div class="kpi-header">
             <span class="kpi-label">Total Fleet</span>
             <div class="kpi-icon">🚗</div>
           </div>
           <div class="kpi-value" id="kpiTotal">0</div>
-          <div class="kpi-sub">Vehicles registered</div>
+          <div class="kpi-sub">Vehicles registered →</div>
         </div>
 
-        <div class="kpi-card available">
+        <div class="kpi-card available" data-filter-status="available" title="Click to view available vehicles">
           <div class="kpi-header">
             <span class="kpi-label">Available</span>
             <div class="kpi-icon">✓</div>
           </div>
           <div class="kpi-value" id="kpiAvailable" style="color: #34d399;">0</div>
-          <div class="kpi-sub">Ready for checkout</div>
+          <div class="kpi-sub">Ready for checkout →</div>
         </div>
 
-        <div class="kpi-card in-use">
+        <div class="kpi-card in-use" data-filter-status="in_use" title="Click to view vehicles on trip (in use)">
           <div class="kpi-header">
             <span class="kpi-label">On Trip</span>
             <div class="kpi-icon">⚡</div>
           </div>
           <div class="kpi-value" id="kpiInUse" style="color: #fbbf24;">0</div>
-          <div class="kpi-sub">Assigned to projects</div>
+          <div class="kpi-sub">Assigned to projects →</div>
         </div>
 
-        <div class="kpi-card maintenance">
+        <div class="kpi-card maintenance" data-filter-status="maintenance" title="Click to view vehicles in maintenance">
           <div class="kpi-header">
             <span class="kpi-label">Maintenance</span>
             <div class="kpi-icon">🔧</div>
           </div>
           <div class="kpi-value" id="kpiMaintenance" style="color: #f87171;">0</div>
-          <div class="kpi-sub">Under servicing</div>
+          <div class="kpi-sub">Under servicing →</div>
         </div>
 
-        <div class="kpi-card projects">
+        <div class="kpi-card projects" data-nav-tab="projects" title="Click to view company projects">
           <div class="kpi-header">
             <span class="kpi-label">Active Projects</span>
             <div class="kpi-icon">🏗️</div>
           </div>
           <div class="kpi-value" id="kpiProjects" style="color: #38bdf8;">0</div>
-          <div class="kpi-sub">Site operations</div>
+          <div class="kpi-sub">Site operations →</div>
         </div>
       </div>
 

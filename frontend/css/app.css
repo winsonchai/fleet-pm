@@ -361,6 +361,8 @@ body {
   transition: var(--transition);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+  user-select: none;
 }
 .kpi-card::before {
   content: '';
@@ -373,9 +375,15 @@ body {
   transition: var(--transition);
 }
 .kpi-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--border-hover);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.kpi-card:hover .kpi-sub {
+  color: var(--text-main);
+}
+.kpi-card:active {
+  transform: translateY(-1px);
 }
 .kpi-card.total::before { background: var(--primary); }
 .kpi-card.available::before { background: var(--success); }
