@@ -145,6 +145,27 @@
           <p class="section-desc">Audit trail of recent vehicle dispatches and returns.</p>
         </div>
       </div>
+
+      <!-- Activity Date Filter Bar -->
+      <div class="filter-bar" style="margin-bottom: 16px; align-items: center;">
+        <div class="filter-group">
+          <span style="font-size: 13px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Filter:</span>
+          <button class="filter-chip activity-date-chip active" data-days="">Recent</button>
+          <button class="filter-chip activity-date-chip" data-days="3">Last 3 Days</button>
+          <button class="filter-chip activity-date-chip" data-days="7">Last 7 Days</button>
+          <button class="filter-chip activity-date-chip" data-days="14">Last 14 Days</button>
+          <button class="filter-chip activity-date-chip" data-days="custom">Custom Range</button>
+        </div>
+        <div class="filter-group" id="activityCustomDateRange" style="display: none; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-muted);">From</span>
+          <input type="date" class="date-input" id="activityStartDate">
+          <span style="font-size: 12px; color: var(--text-muted);">To</span>
+          <input type="date" class="date-input" id="activityEndDate">
+          <button type="button" class="btn btn-primary btn-sm" id="btnApplyActivityDate">Apply</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnResetActivityDate">Reset</button>
+        </div>
+      </div>
+
       <div class="table-container">
         <table class="data-table">
           <thead>
@@ -220,6 +241,25 @@
         <div>
           <h1 class="section-title">Trip Usage Logs & Audit Trail</h1>
           <p class="section-desc">Complete record of every vehicle trip, driver checkouts, return timestamps, and distances.</p>
+        </div>
+      </div>
+      <!-- Trip Logs Filter Bar -->
+      <div class="filter-bar" style="margin-bottom: 16px; align-items: center;">
+        <div class="filter-group">
+          <span style="font-size: 13px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Timeframe:</span>
+          <button class="filter-chip logs-date-chip active" data-days="">All / Recent</button>
+          <button class="filter-chip logs-date-chip" data-days="3">Last 3 Days</button>
+          <button class="filter-chip logs-date-chip" data-days="7">Last 7 Days</button>
+          <button class="filter-chip logs-date-chip" data-days="14">Last 14 Days</button>
+          <button class="filter-chip logs-date-chip" data-days="custom">Custom Range</button>
+        </div>
+        <div class="filter-group" id="logsCustomDateRange" style="display: none; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-muted);">From</span>
+          <input type="date" class="date-input" id="logsStartDate">
+          <span style="font-size: 12px; color: var(--text-muted);">To</span>
+          <input type="date" class="date-input" id="logsEndDate">
+          <button type="button" class="btn btn-primary btn-sm" id="btnApplyLogsDate">Apply</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnResetLogsDate">Reset</button>
         </div>
       </div>
 

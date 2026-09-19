@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let cachedProjects = [];
   let cachedCategories = [];
   let cachedUsers = [];
+  let activityFilterState = { days: null, start_date: null, end_date: null };
+  let logsFilterState = { days: null, start_date: null, end_date: null };
 
   // Toast System
   const toastContainer = document.getElementById('toastContainer');
@@ -128,6 +130,40 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 1. Dashboard View
+  async function loadRecentActivity() {
+    const recentBody = document.getElementById('recentLogsTableBody');
+    if (!recentBody) return;
+    try {
+      const logs = await API.getLogs({
+        days: activityFilterState.days,
+        start_date: activityFilterState.start_date,
+        end_date: activityFilterState.end_date,
+        limit: 50,
+      });
+      if (logs.length === 0) {
+        recentBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-dim); padding: 24px;">No trip activity recorded for the selected timeframe.</td></tr>`;
+      } else {
+        recentBody.innerHTML = logs.map(log => `
+          <tr>
+            <td><span class="plate-tag" style="font-size: 13px;">${log.vehicle_plate}</span></td>
+            <td><strong>${log.driver_name}</strong></td>
+            <td>${log.project_name} <br><small style="color:var(--text-dim);">${log.project_code}</small></td>
+            <td>
+              <span class="status-badge ${log.status}">
+                ${log.status === 'active' ? '● In Progress' : '✓ Completed'}
+              </span>
+            </td>
+            <td>${log.start_odometer.toLocaleString()} km</td>
+            <td>${log.end_odometer ? `${log.end_odometer.toLocaleString()} km` : '—'}</td>
+            <td><strong style="color: var(--accent-cyan);">${log.distance_traveled ? `+${log.distance_traveled} km` : '—'}</strong></td>
+          </tr>
+        `).join('');
+      }
+    } catch (err) {
+      showToast(`Error loading recent activity: ${err.message}`, 'error');
+    }
+  }
+
   async function loadDashboard() {
     try {
       const stats = await API.getDashboardStats();
@@ -176,26 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Recent Activity Table
-      const recentBody = document.getElementById('recentLogsTableBody');
-      if (stats.recent_logs.length === 0) {
-        recentBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-dim); padding: 24px;">No trip history recorded yet.</td></tr>`;
-      } else {
-        recentBody.innerHTML = stats.recent_logs.map(log => `
-          <tr>
-            <td><span class="plate-tag" style="font-size: 13px;">${log.vehicle_plate}</span></td>
-            <td><strong>${log.driver_name}</strong></td>
-            <td>${log.project_name} <br><small style="color:var(--text-dim);">${log.project_code}</small></td>
-            <td>
-              <span class="status-badge ${log.status}">
-                ${log.status === 'active' ? '● In Progress' : '✓ Completed'}
-              </span>
-            </td>
-            <td>${log.start_odometer.toLocaleString()} km</td>
-            <td>${log.end_odometer ? `${log.end_odometer.toLocaleString()} km` : '—'}</td>
-            <td><strong style="color: var(--accent-cyan);">${log.distance_traveled ? `+${log.distance_traveled} km` : '—'}</strong></td>
-          </tr>
-        `).join('');
-      }
+      await loadRecentActivity();
 
       // Attach checkin listeners
       document.querySelectorAll('.btn-quick-checkin').forEach(btn => {
@@ -404,11 +421,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Usage Logs View
   async function loadLogs() {
     try {
-      const logs = await API.getLogs({ limit: 100 });
+      const logs = await API.getLogs({
+        days: logsFilterState.days,
+        start_date: logsFilterState.start_date,
+        end_date: logsFilterState.end_date,
+        limit: 100,
+      });
       const tbody = document.getElementById('logsTableBody');
 
       if (logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-dim);">No usage history recorded for this company.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-dim);">No usage history recorded for the selected timeframe.</td></tr>`;
         return;
       }
 
@@ -919,6 +941,136 @@ document.addEventListener('DOMContentLoaded', () => {
       loadVehicles();
     });
   });
+
+  // Activity Date Filter Events (Dashboard)
+  document.querySelectorAll('.activity-date-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.activity-date-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const customRangeBox = document.getElementById('activityCustomDateRange');
+      const daysVal = btn.dataset.days;
+
+      if (daysVal === 'custom') {
+        if (customRangeBox) {
+          customRangeBox.style.display = 'flex';
+          const endInput = document.getElementById('activityEndDate');
+          const startInput = document.getElementById('activityStartDate');
+          if (!endInput.value) {
+            endInput.value = new Date().toISOString().split('T')[0];
+          }
+          if (!startInput.value) {
+            const d = new Date();
+            d.setDate(d.getDate() - 7);
+            startInput.value = d.toISOString().split('T')[0];
+          }
+        }
+      } else {
+        if (customRangeBox) customRangeBox.style.display = 'none';
+        activityFilterState.days = daysVal ? parseInt(daysVal) : null;
+        activityFilterState.start_date = null;
+        activityFilterState.end_date = null;
+        loadRecentActivity();
+      }
+    });
+  });
+
+  const btnApplyActDate = document.getElementById('btnApplyActivityDate');
+  if (btnApplyActDate) {
+    btnApplyActDate.addEventListener('click', () => {
+      const start = document.getElementById('activityStartDate').value;
+      const end = document.getElementById('activityEndDate').value;
+      if (!start && !end) {
+        showToast('Please pick a start or end date.', 'error');
+        return;
+      }
+      activityFilterState.days = null;
+      activityFilterState.start_date = start || null;
+      activityFilterState.end_date = end || null;
+      loadRecentActivity();
+      showToast(`Showing activity from ${start || 'earliest'} to ${end || 'now'}`, 'info');
+    });
+  }
+
+  const btnResetActDate = document.getElementById('btnResetActivityDate');
+  if (btnResetActDate) {
+    btnResetActDate.addEventListener('click', () => {
+      document.getElementById('activityStartDate').value = '';
+      document.getElementById('activityEndDate').value = '';
+      document.querySelectorAll('.activity-date-chip').forEach(b => b.classList.remove('active'));
+      const defaultChip = document.querySelector('.activity-date-chip[data-days=""]');
+      if (defaultChip) defaultChip.classList.add('active');
+      const customRangeBox = document.getElementById('activityCustomDateRange');
+      if (customRangeBox) customRangeBox.style.display = 'none';
+      activityFilterState = { days: null, start_date: null, end_date: null };
+      loadRecentActivity();
+    });
+  }
+
+  // Trip Logs Date Filter Events
+  document.querySelectorAll('.logs-date-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.logs-date-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const customRangeBox = document.getElementById('logsCustomDateRange');
+      const daysVal = btn.dataset.days;
+
+      if (daysVal === 'custom') {
+        if (customRangeBox) {
+          customRangeBox.style.display = 'flex';
+          const endInput = document.getElementById('logsEndDate');
+          const startInput = document.getElementById('logsStartDate');
+          if (!endInput.value) {
+            endInput.value = new Date().toISOString().split('T')[0];
+          }
+          if (!startInput.value) {
+            const d = new Date();
+            d.setDate(d.getDate() - 7);
+            startInput.value = d.toISOString().split('T')[0];
+          }
+        }
+      } else {
+        if (customRangeBox) customRangeBox.style.display = 'none';
+        logsFilterState.days = daysVal ? parseInt(daysVal) : null;
+        logsFilterState.start_date = null;
+        logsFilterState.end_date = null;
+        loadLogs();
+      }
+    });
+  });
+
+  const btnApplyLogsDate = document.getElementById('btnApplyLogsDate');
+  if (btnApplyLogsDate) {
+    btnApplyLogsDate.addEventListener('click', () => {
+      const start = document.getElementById('logsStartDate').value;
+      const end = document.getElementById('logsEndDate').value;
+      if (!start && !end) {
+        showToast('Please pick a start or end date.', 'error');
+        return;
+      }
+      logsFilterState.days = null;
+      logsFilterState.start_date = start || null;
+      logsFilterState.end_date = end || null;
+      loadLogs();
+      showToast(`Showing logs from ${start || 'earliest'} to ${end || 'now'}`, 'info');
+    });
+  }
+
+  const btnResetLogsDate = document.getElementById('btnResetLogsDate');
+  if (btnResetLogsDate) {
+    btnResetLogsDate.addEventListener('click', () => {
+      document.getElementById('logsStartDate').value = '';
+      document.getElementById('logsEndDate').value = '';
+      document.querySelectorAll('.logs-date-chip').forEach(b => b.classList.remove('active'));
+      const defaultChip = document.querySelector('.logs-date-chip[data-days=""]');
+      if (defaultChip) defaultChip.classList.add('active');
+      const customRangeBox = document.getElementById('logsCustomDateRange');
+      if (customRangeBox) customRangeBox.style.display = 'none';
+      logsFilterState = { days: null, start_date: null, end_date: null };
+      loadLogs();
+    });
+  }
 
   // Demo Persona Switch Buttons
   document.querySelectorAll('.demo-btn').forEach(btn => {

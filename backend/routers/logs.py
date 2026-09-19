@@ -1,5 +1,5 @@
 """Vehicle usage logs router: who used what, when, and for which project."""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
@@ -35,13 +35,17 @@ def list_logs(
     project_id: Optional[int] = Query(None),
     driver_id: Optional[int] = Query(None),
     q: Optional[str] = Query(None),
+    days: Optional[int] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=500),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     List vehicle usage logs strictly within current user's company.
-    Supports filtering by vehicle, project, driver, or active/completed status.
+    Supports filtering by vehicle, project, driver, active/completed status,
+    relative days (e.g. 3, 7, 14), and custom date ranges.
     """
     company_id = get_company_context(current_user)
     query = db.query(VehicleUsageLog).filter(VehicleUsageLog.company_id == company_id)
@@ -54,6 +58,27 @@ def list_logs(
         query = query.filter(VehicleUsageLog.project_id == project_id)
     if driver_id:
         query = query.filter(VehicleUsageLog.driver_id == driver_id)
+
+    if days and days > 0:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        query = query.filter(VehicleUsageLog.checkout_time >= cutoff)
+    else:
+        if start_date and start_date.strip():
+            try:
+                dt_start = datetime.fromisoformat(start_date.strip())
+                if dt_start.tzinfo is None:
+                    dt_start = dt_start.replace(tzinfo=timezone.utc)
+                query = query.filter(VehicleUsageLog.checkout_time >= dt_start)
+            except Exception:
+                pass
+        if end_date and end_date.strip():
+            try:
+                dt_end = datetime.fromisoformat(end_date.strip())
+                if dt_end.tzinfo is None:
+                    dt_end = dt_end.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=timezone.utc)
+                query = query.filter(VehicleUsageLog.checkout_time <= dt_end)
+            except Exception:
+                pass
 
     if q and q.strip():
         search = f"%{q.strip()}%"

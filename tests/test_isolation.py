@@ -150,3 +150,28 @@ def test_dashboard_stats_isolation(client, apex_admin_headers, summit_admin_head
     stats_summit = res_summit.json()
     # Summit stats should only reflect Summit assets
     assert stats_summit["total_vehicles"] != stats_apex["total_vehicles"]
+
+
+def test_usage_logs_timeframe_filtering(client, apex_admin_headers):
+    """Verify that filtering logs by days, start_date, and end_date works correctly."""
+    # Unfiltered
+    res_all = client.get("/api/logs", headers=apex_admin_headers)
+    assert res_all.status_code == 200
+    all_logs = res_all.json()
+    assert len(all_logs) >= 2
+
+    # Filter last 7 days
+    res_7d = client.get("/api/logs?days=7", headers=apex_admin_headers)
+    assert res_7d.status_code == 200
+    logs_7d = res_7d.json()
+    assert len(logs_7d) >= 1
+
+    # Filter custom date range matching recent logs
+    res_custom = client.get("/api/logs?start_date=2026-09-01&end_date=2026-09-30", headers=apex_admin_headers)
+    assert res_custom.status_code == 200
+    assert len(res_custom.json()) >= 1
+
+    # Filter far future date range (should return empty list)
+    res_future = client.get("/api/logs?start_date=2099-01-01&end_date=2099-01-31", headers=apex_admin_headers)
+    assert res_future.status_code == 200
+    assert len(res_future.json()) == 0

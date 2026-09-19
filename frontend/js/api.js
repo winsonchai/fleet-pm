@@ -190,6 +190,9 @@ const API = (() => {
       if (filters.vehicle_id) query.append('vehicle_id', filters.vehicle_id);
       if (filters.project_id) query.append('project_id', filters.project_id);
       if (filters.q) query.append('q', filters.q);
+      if (filters.days) query.append('days', filters.days);
+      if (filters.start_date) query.append('start_date', filters.start_date);
+      if (filters.end_date) query.append('end_date', filters.end_date);
       if (filters.limit) query.append('limit', filters.limit);
       const queryString = query.toString() ? `?${query.toString()}` : '';
       return request(`/api/logs${queryString}`);
