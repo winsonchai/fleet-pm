@@ -108,6 +108,12 @@ class VehicleCategoryCreate(BaseModel):
     description: Optional[str] = None
 
 
+class VehicleCategoryUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=80)
+    icon: Optional[str] = None
+    description: Optional[str] = None
+
+
 class VehicleCategoryRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

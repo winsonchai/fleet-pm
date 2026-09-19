@@ -157,6 +157,19 @@ const API = (() => {
       });
     },
 
+    async updateCategory(id, payload) {
+      return request(`/api/categories/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+    },
+
+    async deleteCategory(id) {
+      return request(`/api/categories/${id}`, {
+        method: 'DELETE',
+      });
+    },
+
     // Logs & Trips
     async getLogs(filters = {}) {
       const query = new URLSearchParams();

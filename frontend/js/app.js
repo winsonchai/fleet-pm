@@ -411,23 +411,81 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = `
           <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: var(--bg-card); border-radius: var(--radius-lg); color: var(--text-dim);">
             <h3>No categories found</h3>
+            <p style="margin-top: 6px;">Click "+ Add New Category" to create a vehicle classification.</p>
           </div>
         `;
         return;
       }
 
-      grid.innerHTML = categories.map(c => `
-        <div class="vehicle-card">
-          <div class="vehicle-card-top">
-            <span style="font-size: 28px;">🚚</span>
-            <span class="status-badge available">${c.vehicle_count} Vehicle(s)</span>
+      const iconMap = {
+        truck: '🚚',
+        car: '🚗',
+        package: '📦',
+        van: '🚐',
+        shield: '🛡️',
+        wrench: '🔧',
+      };
+
+      grid.innerHTML = categories.map(c => {
+        const displayIcon = iconMap[c.icon] || (c.icon && c.icon.length <= 4 ? c.icon : '🚚');
+        const catJson = JSON.stringify(c).replace(/'/g, '&apos;');
+        return `
+          <div class="vehicle-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="vehicle-card-top">
+                <span style="font-size: 32px;">${displayIcon}</span>
+                <span class="status-badge available">${c.vehicle_count} Vehicle(s)</span>
+              </div>
+              <div class="vehicle-model">${c.name}</div>
+              <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px; line-height: 1.5;">
+                ${c.description || 'No description provided.'}
+              </p>
+            </div>
+            <div class="vehicle-card-actions" style="margin-top: 20px; display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-sm btn-edit-category" data-cat='${catJson}'>
+                ✏️ Edit
+              </button>
+              <button class="btn btn-secondary btn-sm btn-delete-category" data-id="${c.id}" data-name="${c.name}" data-count="${c.vehicle_count}" style="color: #f87171;">
+                🗑️ Delete
+              </button>
+            </div>
           </div>
-          <div class="vehicle-model">${c.name}</div>
-          <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">
-            ${c.description || 'General fleet category'}
-          </p>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      // Wire Edit Buttons
+      grid.querySelectorAll('.btn-edit-category').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cat = JSON.parse(btn.dataset.cat);
+          openEditCategoryModal(cat);
+        });
+      });
+
+      // Wire Delete Buttons
+      grid.querySelectorAll('.btn-delete-category').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const catId = parseInt(btn.dataset.id);
+          const catName = btn.dataset.name;
+          const count = parseInt(btn.dataset.count);
+
+          if (count > 0) {
+            showToast(`Cannot delete "${catName}": ${count} vehicle(s) still belong to it. Reassign or delete those vehicles first.`, 'error');
+            return;
+          }
+
+          if (!confirm(`Are you sure you want to delete category "${catName}"?`)) {
+            return;
+          }
+
+          try {
+            await API.deleteCategory(catId);
+            showToast(`Category "${catName}" deleted.`, 'success');
+            loadCategories();
+          } catch (err) {
+            showToast(err.message, 'error');
+          }
+        });
+      });
     } catch (err) {
       showToast(`Error loading categories: ${err.message}`, 'error');
     }
@@ -591,6 +649,73 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(err.message, 'error');
     }
   });
+
+  // Category Modal Handlers
+  function openEditCategoryModal(cat) {
+    document.getElementById('editCategoryId').value = cat.id;
+    document.getElementById('editCategoryName').value = cat.name;
+    document.getElementById('editCategoryIcon').value = cat.icon || 'truck';
+    document.getElementById('editCategoryDesc').value = cat.description || '';
+    openModal('editCategoryModal');
+  }
+
+  // Preset Icon click handler
+  document.querySelectorAll('.category-icon-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetInput = document.getElementById(btn.dataset.target);
+      if (targetInput) targetInput.value = btn.dataset.icon;
+    });
+  });
+
+  // Open Add Category Modal
+  const btnAddCat = document.getElementById('btnAddCategory');
+  if (btnAddCat) {
+    btnAddCat.addEventListener('click', () => {
+      openModal('addCategoryModal');
+    });
+  }
+
+  // Submit Add Category Form
+  const addCatForm = document.getElementById('addCategoryForm');
+  if (addCatForm) {
+    addCatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('newCategoryName').value.trim();
+      const icon = document.getElementById('newCategoryIcon').value.trim();
+      const description = document.getElementById('newCategoryDesc').value.trim();
+
+      try {
+        await API.createCategory({ name, icon, description });
+        closeModal('addCategoryModal');
+        addCatForm.reset();
+        showToast(`Category "${name}" created successfully!`, 'success');
+        loadCategories();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
+
+  // Submit Edit Category Form
+  const editCatForm = document.getElementById('editCategoryForm');
+  if (editCatForm) {
+    editCatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('editCategoryId').value);
+      const name = document.getElementById('editCategoryName').value.trim();
+      const icon = document.getElementById('editCategoryIcon').value.trim();
+      const description = document.getElementById('editCategoryDesc').value.trim();
+
+      try {
+        await API.updateCategory(id, { name, icon, description });
+        closeModal('editCategoryModal');
+        showToast(`Category "${name}" updated successfully!`, 'success');
+        loadCategories();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
 
   // Search & Filter Events
   const searchInput = document.getElementById('vehicleSearch');

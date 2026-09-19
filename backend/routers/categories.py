@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.database import get_db
 from backend.models import VehicleCategory, Vehicle, User
-from backend.schemas import VehicleCategoryCreate, VehicleCategoryRead
+from backend.schemas import VehicleCategoryCreate, VehicleCategoryRead, VehicleCategoryUpdate
 from backend.security import get_current_user, get_company_context
 
 router = APIRouter(prefix="/api/categories", tags=["Categories"])
@@ -71,6 +71,63 @@ def create_category(
     db.refresh(cat)
     read_obj = VehicleCategoryRead.model_validate(cat)
     read_obj.vehicle_count = 0
+    return read_obj
+
+
+@router.put("/{category_id}", response_model=VehicleCategoryRead)
+def update_category(
+    category_id: int,
+    req: VehicleCategoryUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    company_id = get_company_context(current_user)
+    cat = (
+        db.query(VehicleCategory)
+        .filter(
+            VehicleCategory.id == category_id,
+            VehicleCategory.company_id == company_id,
+        )
+        .first()
+    )
+    if not cat:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found",
+        )
+
+    if req.name and req.name.strip() != cat.name:
+        existing = (
+            db.query(VehicleCategory)
+            .filter(
+                VehicleCategory.company_id == company_id,
+                VehicleCategory.name == req.name.strip(),
+                VehicleCategory.id != category_id,
+            )
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Category '{req.name}' already exists in your company.",
+            )
+        cat.name = req.name.strip()
+
+    if req.icon is not None:
+        cat.icon = req.icon.strip() if req.icon else "truck"
+
+    if req.description is not None:
+        cat.description = req.description.strip() if req.description else None
+
+    db.commit()
+    db.refresh(cat)
+    read_obj = VehicleCategoryRead.model_validate(cat)
+    read_obj.vehicle_count = (
+        db.query(func.count(Vehicle.id))
+        .filter(Vehicle.category_id == cat.id)
+        .scalar()
+        or 0
+    )
     return read_obj
 
 
